@@ -5,6 +5,8 @@ import transactionsRouter from './routes/transactions/index';
 dotenv.config();
 
 const app = express();
+app.use(express.json());
+
 const port = process.env.PORT || 5001;
 
 app.get('/', (req, res) => {
