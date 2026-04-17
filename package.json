@@ -2,10 +2,10 @@
   "name": "keli-backend",
   "version": "1.0.0",
   "description": "Backend for a personal and collaborative finance management app. Built with Node.js, TypeScript , Neon and Drizzle ORM",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc"
   },
   "repository": {
@@ -21,11 +21,14 @@
   },
   "homepage": "https://github.com/KevinLuna17/keli-backend#readme",
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^17.4.1",
+    "drizzle-orm": "^0.45.2",
     "express": "^5.2.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
