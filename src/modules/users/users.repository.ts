@@ -25,9 +25,29 @@ export async function create(input: CreateUserInput): Promise<UserRecord> {
       id: input.id,
       email: input.email,
       name: input.name,
-      imageUrl: input.imageUrl,
+      image_url: input.imageUrl,
     })
     .returning();
+
+  return mapUserRowToRecord(row);
+}
+
+export async function updateImageUrl(
+  id: string,
+  imageUrl: string,
+): Promise<UserRecord | null> {
+  const [row] = await db
+    .update(usersTable)
+    .set({
+      image_url: imageUrl,
+      updated_at: new Date(),
+    })
+    .where(eq(usersTable.id, id))
+    .returning();
+
+  if (!row || row.deleted_at) {
+    return null;
+  }
 
   return mapUserRowToRecord(row);
 }

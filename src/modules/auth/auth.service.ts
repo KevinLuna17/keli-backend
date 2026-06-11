@@ -1,5 +1,6 @@
 import { clerkClient } from "@clerk/express";
 import { AppError } from "../../shared/errors/app-error";
+import * as usersRepository from "../users/users.repository";
 import * as usersService from "../users/users.service";
 import { UserRecord } from "../users/user.types";
 
@@ -33,6 +34,29 @@ function getDisplayName(
 }
 
 export async function syncUser(userId: string): Promise<UserRecord> {
+  const existingUser = await usersRepository.findById(userId);
+
+  if (existingUser) {
+    if (existingUser.imageUrl) {
+      return existingUser;
+    }
+
+    const clerkUser = await clerkClient.users.getUser(userId);
+
+    if (clerkUser.imageUrl) {
+      const updatedUser = await usersRepository.updateImageUrl(
+        userId,
+        clerkUser.imageUrl,
+      );
+
+      if (updatedUser) {
+        return updatedUser;
+      }
+    }
+
+    return existingUser;
+  }
+
   const clerkUser = await clerkClient.users.getUser(userId);
 
   return usersService.ensureUserExists({

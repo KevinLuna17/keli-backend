@@ -8,7 +8,7 @@ export function mapUserRowToRecord(row: UserRow): UserRecord {
     id: row.id,
     email: row.email,
     name: row.name,
-    imageUrl: row.imageUrl,
+    imageUrl: row.image_url,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

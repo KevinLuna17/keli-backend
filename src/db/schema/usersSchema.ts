@@ -2,7 +2,7 @@ import { pgTable, text } from "drizzle-orm/pg-core";
 import { timestamps } from "../../lib/columns.helper";
 
 export const usersTable = pgTable("users", {
-  id: text().primaryKey(), // Clerk userID
+  id: text().primaryKey(),
   email: text().notNull(),
   name: text(),
   image_url: text(),
