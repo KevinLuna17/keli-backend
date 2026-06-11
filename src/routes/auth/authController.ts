@@ -1,18 +1,21 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
+import { AppError } from "../../shared/errors/app-error";
 import * as authService from "../../modules/auth/auth.service";
-import { syncUserSchema } from "../../modules/auth/auth.schema";
 
-export const syncUser = async (req: Request, res: Response) => {
-  const parsed = syncUserSchema.safeParse(req.body);
+export async function syncUser(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user?.id) {
+      throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+    }
 
-  if (!parsed.success) {
-    return res.status(400).json(parsed.error);
+    const user = await authService.syncUser(req.user.id);
+
+    res.status(200).json({ data: user });
+  } catch (error) {
+    next(error);
   }
-
-  const user = await authService.syncUser(
-    req.user.id,
-    parsed.data
-  );
-
-  res.json(user);
-};
+}

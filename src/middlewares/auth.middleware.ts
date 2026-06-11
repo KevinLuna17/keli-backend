@@ -1,18 +1,23 @@
 import { getAuth } from "@clerk/express";
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
-export const authMiddleware = (
-    req: Request, 
-    res: Response, 
-    next: NextFunction
-) => {
-    const { userId } = getAuth(req);
+export function authMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  const { isAuthenticated, userId } = getAuth(req);
 
-    if (!userId) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
+  if (!isAuthenticated || !userId) {
+    res.status(401).json({
+      error: {
+        message: "Unauthorized",
+        code: "UNAUTHORIZED",
+      },
+    });
+    return;
+  }
 
-    req.user = { id: userId };
-
-    next();
-};
+  req.user = { id: userId };
+  next();
+}

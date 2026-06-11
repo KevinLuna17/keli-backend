@@ -1,21 +1,14 @@
+import { CreateUserInput, UserRecord } from "./user.types";
 import * as usersRepository from "./users.repository";
 
-export const ensureUserExists = async (user: {
-    id: string;
-    email?: string;
-    name?: string;
-    imageUrl?: string;
-}) => {
-    const existingUser = await usersRepository.findById(user.id);
-    
-    if (existingUser) return existingUser;
-    
-    await usersRepository.create({
-        id: user.id,
-        email: user.email || "",
-        name: user.name,
-        imageUrl: user.imageUrl,
-    });
+export async function ensureUserExists(
+  input: CreateUserInput,
+): Promise<UserRecord> {
+  const existingUser = await usersRepository.findById(input.id);
 
-    return await usersRepository.findById(user.id);
-};
+  if (existingUser) {
+    return existingUser;
+  }
+
+  return usersRepository.create(input);
+}
