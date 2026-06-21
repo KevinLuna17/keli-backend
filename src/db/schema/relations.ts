@@ -4,7 +4,7 @@ import { usersTable } from "./usersSchema";
 import { workspacesTable } from "./workspaces-schema";
 import {
   transactionsTable,
-} from "../../modules/transactions/transaction.schema";
+} from "../../modules/transactions/transaction.table";
 
 export const workspacesRelations = relations(workspacesTable, ({ one, many }) => ({
   owner: one(usersTable, {

@@ -1,74 +1,95 @@
-import { sql } from "drizzle-orm";
-import {
-  check,
-  index,
-  integer,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { timestamps } from "../../lib/columns.helper";
-import { categoriesTable } from "../../db/schema/categories-schema";
-import { usersTable } from "../../db/schema/usersSchema";
-import { workspacesTable } from "../../db/schema/workspaces-schema";
+import { z } from "zod";
 
-export const transactionTypeEnum = pgEnum("transaction_type", [
-  "income",
-  "expense",
-]);
+const transactionTypeSchema = z.enum(["income", "expense"]);
 
-export const transactionsTable = pgTable(
-  "transactions",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    workspaceId: uuid()
-      .notNull()
-      .references(() => workspacesTable.id),
-    categoryId: uuid()
-      .notNull()
-      .references(() => categoriesTable.id),
-    createdBy: text()
-      .notNull()
-      .references(() => usersTable.id),
-    type: transactionTypeEnum().notNull(),
-    amountInCents: integer().notNull(),
-    description: varchar({ length: 255 }).notNull(),
-    notes: text(),
-    transactionDate: timestamp().notNull(),
-    ...timestamps,
-  },
-  (table) => [
-    check(
-      "transactions_amount_in_cents_positive",
-      sql`${table.amountInCents} > 0`,
-    ),
-    index("transactions_workspace_id_idx").on(table.workspaceId),
-    index("transactions_transaction_date_idx").on(table.transactionDate),
-    index("transactions_workspace_id_transaction_date_idx").on(
-      table.workspaceId,
-      table.transactionDate,
-    ),
-  ],
-);
+const categoryIdSchema = z.uuid("categoryId must be a valid UUID");
 
-export const transactionsRelations = relations(
-  transactionsTable,
-  ({ one }) => ({
-    workspace: one(workspacesTable, {
-      fields: [transactionsTable.workspaceId],
-      references: [workspacesTable.id],
-    }),
-    category: one(categoriesTable, {
-      fields: [transactionsTable.categoryId],
-      references: [categoriesTable.id],
-    }),
-    creator: one(usersTable, {
-      fields: [transactionsTable.createdBy],
-      references: [usersTable.id],
-    }),
-  }),
-);
+const amountInCentsSchema = z
+  .number({ error: "amountInCents is required" })
+  .int("amountInCents must be an integer")
+  .positive("amountInCents must be greater than 0");
+
+const descriptionSchema = z
+  .string({ error: "description is required" })
+  .trim()
+  .min(2, "description must be at least 2 characters")
+  .max(255, "description must be at most 255 characters");
+
+const notesSchema = z
+  .string()
+  .max(1000, "notes must be at most 1000 characters");
+
+const transactionDateSchema = z.coerce.date({
+  error: "transactionDate is required",
+});
+
+export const CreateTransactionSchema = z
+  .object({
+    categoryId: categoryIdSchema,
+    type: transactionTypeSchema,
+    amountInCents: amountInCentsSchema,
+    description: descriptionSchema,
+    notes: notesSchema.nullable().optional(),
+    transactionDate: transactionDateSchema,
+  })
+  .strict();
+
+export const UpdateTransactionSchema = z
+  .object({
+    categoryId: categoryIdSchema.optional(),
+    type: transactionTypeSchema.optional(),
+    amountInCents: amountInCentsSchema.optional(),
+    description: descriptionSchema.optional(),
+    notes: notesSchema.nullable().optional(),
+    transactionDate: transactionDateSchema.optional(),
+  })
+  .strict()
+  .refine((data) => Object.values(data).some((value) => value !== undefined), {
+    message: "At least one field must be provided",
+  });
+
+export const ListTransactionsQuerySchema = z
+  .object({
+    workspaceId: z.uuid("workspaceId must be a valid UUID"),
+    type: transactionTypeSchema.optional(),
+    categoryId: categoryIdSchema.optional(),
+    startDate: z.coerce.date().optional(),
+    endDate: z.coerce.date().optional(),
+    page: z.coerce
+      .number()
+      .int("page must be an integer")
+      .positive("page must be greater than 0")
+      .optional(),
+    limit: z.coerce
+      .number()
+      .int("limit must be an integer")
+      .positive("limit must be greater than 0")
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return data.startDate <= data.endDate;
+      }
+
+      return true;
+    },
+    {
+      message: "startDate must be before or equal to endDate",
+      path: ["endDate"],
+    },
+  );
+
+export const TransactionIdParamSchema = z
+  .object({
+    id: z.uuid("id must be a valid UUID"),
+  })
+  .strict();
+
+export type CreateTransactionDto = z.infer<typeof CreateTransactionSchema>;
+export type UpdateTransactionDto = z.infer<typeof UpdateTransactionSchema>;
+export type ListTransactionsQueryDto = z.infer<
+  typeof ListTransactionsQuerySchema
+>;
+export type TransactionIdParamDto = z.infer<typeof TransactionIdParamSchema>;

@@ -9,7 +9,7 @@ import {
   SQL,
 } from "drizzle-orm";
 import { db } from "../../db";
-import { transactionsTable } from "./transaction.schema";
+import { transactionsTable } from "./transaction.table";
 import { mapTransactionRowToRecord } from "./transaction.mapper";
 import {
   CreateTransactionInput,

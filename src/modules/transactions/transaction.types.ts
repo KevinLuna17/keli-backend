@@ -1,7 +1,7 @@
 import {
   transactionTypeEnum,
   transactionsTable,
-} from "./transaction.schema";
+} from "./transaction.table";
 
 export type TransactionRow = typeof transactionsTable.$inferSelect;
 export type NewTransactionRow = typeof transactionsTable.$inferInsert;
