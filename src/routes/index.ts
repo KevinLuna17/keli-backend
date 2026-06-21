@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authRouter from "./auth/index";
 import { getHealth } from "./health/health.controller";
-import transactionsRouter from "./transactions/index";
+import transactionsRouter from "../modules/transactions/transaction.routes";
 
 const router = Router();
 

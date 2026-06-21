@@ -23,6 +23,12 @@ const transactionDateSchema = z.coerce.date({
   error: "transactionDate is required",
 });
 
+export const CreateTransactionQuerySchema = z
+  .object({
+    workspaceId: z.uuid("workspaceId must be a valid UUID"),
+  })
+  .strict();
+
 export const CreateTransactionSchema = z
   .object({
     categoryId: categoryIdSchema,
@@ -88,6 +94,9 @@ export const TransactionIdParamSchema = z
   .strict();
 
 export type CreateTransactionDto = z.infer<typeof CreateTransactionSchema>;
+export type CreateTransactionQueryDto = z.infer<
+  typeof CreateTransactionQuerySchema
+>;
 export type UpdateTransactionDto = z.infer<typeof UpdateTransactionSchema>;
 export type ListTransactionsQueryDto = z.infer<
   typeof ListTransactionsQuerySchema
