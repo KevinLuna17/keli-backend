@@ -11,7 +11,6 @@ export function mapTransactionRowToRecord(
     type: row.type,
     amountInCents: row.amountInCents,
     description: row.description,
-    notes: row.notes,
     transactionDate: row.transactionDate,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

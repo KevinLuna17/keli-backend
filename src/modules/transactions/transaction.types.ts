@@ -16,7 +16,6 @@ export type TransactionRecord = {
   type: TransactionType;
   amountInCents: number;
   description: string;
-  notes: string | null;
   transactionDate: Date;
   createdAt: Date;
   updatedAt: Date | null;
@@ -29,7 +28,6 @@ export type CreateTransactionInput = {
   type: TransactionType;
   amountInCents: number;
   description: string;
-  notes?: string | null;
   transactionDate: Date;
 };
 
@@ -38,7 +36,6 @@ export type UpdateTransactionInput = {
   type?: TransactionType;
   amountInCents?: number;
   description?: string;
-  notes?: string | null;
   transactionDate?: Date;
 };
 

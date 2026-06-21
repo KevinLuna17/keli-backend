@@ -15,10 +15,6 @@ const descriptionSchema = z
   .min(2, "description must be at least 2 characters")
   .max(255, "description must be at most 255 characters");
 
-const notesSchema = z
-  .string()
-  .max(1000, "notes must be at most 1000 characters");
-
 const transactionDateSchema = z.coerce.date({
   error: "transactionDate is required",
 });
@@ -35,7 +31,6 @@ export const CreateTransactionSchema = z
     type: transactionTypeSchema,
     amountInCents: amountInCentsSchema,
     description: descriptionSchema,
-    notes: notesSchema.nullable().optional(),
     transactionDate: transactionDateSchema,
   })
   .strict();
@@ -46,7 +41,6 @@ export const UpdateTransactionSchema = z
     type: transactionTypeSchema.optional(),
     amountInCents: amountInCentsSchema.optional(),
     description: descriptionSchema.optional(),
-    notes: notesSchema.nullable().optional(),
     transactionDate: transactionDateSchema.optional(),
   })
   .strict()

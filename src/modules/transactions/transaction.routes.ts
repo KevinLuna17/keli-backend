@@ -15,7 +15,7 @@ router.use(authMiddleware);
  * POST /
  *   Create a transaction in a workspace.
  *   Query: workspaceId (UUID, required)
- *   Body: { categoryId, type, amountInCents, description, notes?, transactionDate }
+ *   Body: { categoryId, type, amountInCents, description, transactionDate }
  *   Response: 201 { data: TransactionRecord }
  *
  * GET /
@@ -31,7 +31,7 @@ router.use(authMiddleware);
  * PATCH /:id
  *   Update editable fields on a transaction.
  *   Params: id (UUID)
- *   Body: at least one of { categoryId?, type?, amountInCents?, description?, notes?, transactionDate? }
+ *   Body: at least one of { categoryId?, type?, amountInCents?, description?, transactionDate? }
  *   Response: 200 { data: TransactionRecord }
  *
  * DELETE /:id

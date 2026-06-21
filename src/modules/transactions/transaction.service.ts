@@ -81,7 +81,6 @@ export async function createTransaction(
     type: input.type,
     amountInCents: input.amountInCents,
     description: input.description,
-    notes: input.notes ?? null,
     transactionDate: input.transactionDate,
   });
 }

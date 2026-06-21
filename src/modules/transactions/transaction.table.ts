@@ -37,7 +37,6 @@ export const transactionsTable = pgTable(
     type: transactionTypeEnum().notNull(),
     amountInCents: integer().notNull(),
     description: varchar({ length: 255 }).notNull(),
-    notes: text(),
     transactionDate: timestamp().notNull(),
     ...timestamps,
   },
