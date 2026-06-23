@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { categoriesTable } from "./categories-schema";
 import { usersTable } from "./usersSchema";
+import { workspaceMembersTable } from "./workspace-members-schema";
 import { workspacesTable } from "./workspaces-schema";
 import {
   transactionsTable,
@@ -13,7 +14,22 @@ export const workspacesRelations = relations(workspacesTable, ({ one, many }) =>
   }),
   categories: many(categoriesTable),
   transactions: many(transactionsTable),
+  members: many(workspaceMembersTable),
 }));
+
+export const workspaceMembersRelations = relations(
+  workspaceMembersTable,
+  ({ one }) => ({
+    workspace: one(workspacesTable, {
+      fields: [workspaceMembersTable.workspaceId],
+      references: [workspacesTable.id],
+    }),
+    user: one(usersTable, {
+      fields: [workspaceMembersTable.userId],
+      references: [usersTable.id],
+    }),
+  }),
+);
 
 export const categoriesRelations = relations(categoriesTable, ({ one, many }) => ({
   workspace: one(workspacesTable, {

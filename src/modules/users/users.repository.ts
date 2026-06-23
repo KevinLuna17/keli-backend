@@ -1,11 +1,16 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../db";
+import { db, DbClient, DbTransaction } from "../../db";
 import { usersTable } from "../../db/schema/usersSchema";
 import { mapUserRowToRecord } from "./user.mapper";
 import { CreateUserInput, UserRecord } from "./user.types";
 
-export async function findById(id: string): Promise<UserRecord | null> {
-  const [row] = await db
+type DbExecutor = DbClient | DbTransaction;
+
+export async function findById(
+  id: string,
+  executor: DbExecutor = db,
+): Promise<UserRecord | null> {
+  const [row] = await executor
     .select()
     .from(usersTable)
     .where(eq(usersTable.id, id))
@@ -18,8 +23,11 @@ export async function findById(id: string): Promise<UserRecord | null> {
   return mapUserRowToRecord(row);
 }
 
-export async function create(input: CreateUserInput): Promise<UserRecord> {
-  const [row] = await db
+export async function create(
+  input: CreateUserInput,
+  executor: DbExecutor = db,
+): Promise<UserRecord> {
+  const [row] = await executor
     .insert(usersTable)
     .values({
       id: input.id,
@@ -35,8 +43,9 @@ export async function create(input: CreateUserInput): Promise<UserRecord> {
 export async function updateImageUrl(
   id: string,
   imageUrl: string,
+  executor: DbExecutor = db,
 ): Promise<UserRecord | null> {
-  const [row] = await db
+  const [row] = await executor
     .update(usersTable)
     .set({
       image_url: imageUrl,

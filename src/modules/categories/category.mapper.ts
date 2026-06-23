@@ -5,6 +5,8 @@ export function mapCategoryRowToRecord(row: CategoryRow): CategoryRecord {
     id: row.id,
     workspaceId: row.workspaceId,
     name: row.name,
+    type: row.type,
+    iconKey: row.iconKey as CategoryRecord["iconKey"],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

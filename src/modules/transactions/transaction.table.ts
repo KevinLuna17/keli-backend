@@ -3,7 +3,6 @@ import {
   check,
   index,
   integer,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -12,14 +11,10 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { timestamps } from "../../lib/columns.helper";
+import { transactionTypeEnum } from "../../db/schema/enums";
 import { categoriesTable } from "../../db/schema/categories-schema";
 import { usersTable } from "../../db/schema/usersSchema";
 import { workspacesTable } from "../../db/schema/workspaces-schema";
-
-export const transactionTypeEnum = pgEnum("transaction_type", [
-  "income",
-  "expense",
-]);
 
 export const transactionsTable = pgTable(
   "transactions",
