@@ -4,7 +4,7 @@ import { categoriesTable } from "../../db/schema/categories-schema";
 import { isUniqueViolation } from "../../shared/utils/is-unique-violation";
 import { resolveIconKeyForCategory } from "./category-icon.utils";
 import { mapCategoryRowToRecord } from "./category.mapper";
-import { CategoryRecord, CreateCategoryInput } from "./category.types";
+import { CategoryRecord, CreateCategoryInput, CategoryType } from "./category.types";
 
 type DbExecutor = DbClient | DbTransaction;
 
@@ -86,4 +86,25 @@ export async function createMany(
   }
 
   return created;
+}
+
+export async function updateType(
+  id: string,
+  type: CategoryType,
+  executor: DbExecutor = db,
+): Promise<CategoryRecord | null> {
+  const [row] = await executor
+    .update(categoriesTable)
+    .set({
+      type,
+      updated_at: new Date(),
+    })
+    .where(and(eq(categoriesTable.id, id), isNull(categoriesTable.deleted_at)))
+    .returning();
+
+  if (!row) {
+    return null;
+  }
+
+  return mapCategoryRowToRecord(row);
 }

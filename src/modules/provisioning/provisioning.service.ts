@@ -26,6 +26,35 @@ export function buildPersonalWorkspaceName(name: string | null): string {
   return "My Finances";
 }
 
+async function correctMisclassifiedDefaultCategories(
+  existingCategories: Awaited<
+    ReturnType<typeof categoriesRepository.listByWorkspaceId>
+  >,
+  tx: DbTransaction,
+): Promise<void> {
+  for (const definition of DEFAULT_CATEGORIES) {
+    const hasCorrectType = existingCategories.some(
+      (category) =>
+        category.name === definition.name && category.type === definition.type,
+    );
+
+    if (hasCorrectType) {
+      continue;
+    }
+
+    const misclassified = existingCategories.find(
+      (category) =>
+        category.name === definition.name && category.type !== definition.type,
+    );
+
+    if (!misclassified) {
+      continue;
+    }
+
+    await categoriesRepository.updateType(misclassified.id, definition.type, tx);
+  }
+}
+
 async function ensureDefaultCategories(
   workspaceId: string,
   tx: DbTransaction,
@@ -35,8 +64,15 @@ async function ensureDefaultCategories(
     tx,
   );
 
+  await correctMisclassifiedDefaultCategories(existingCategories, tx);
+
+  const categoriesAfterCorrection = await categoriesRepository.listByWorkspaceId(
+    workspaceId,
+    tx,
+  );
+
   const existingKeys = new Set(
-    existingCategories.map(
+    categoriesAfterCorrection.map(
       (category) => `${category.type}:${category.name.toLowerCase()}`,
     ),
   );
