@@ -2,6 +2,7 @@ import { clerkClient } from "@clerk/express";
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
 import * as provisioningService from "../provisioning/provisioning.service";
+import * as invitationService from "../workspace-invitations/invitation.service";
 import * as usersRepository from "../users/users.repository";
 import { UserRecord } from "../users/user.types";
 
@@ -43,15 +44,15 @@ export async function syncUser(userId: string): Promise<UserRecord> {
     ? await clerkClient.users.getUser(userId)
     : null;
 
-  return db.transaction(async (tx) => {
-    let user = await usersRepository.findById(userId, tx);
+  const user = await db.transaction(async (tx) => {
+    let syncedUser = await usersRepository.findById(userId, tx);
 
-    if (!user) {
+    if (!syncedUser) {
       if (!clerkUser) {
         throw new AppError("Authenticated user not found", 404, "USER_NOT_FOUND");
       }
 
-      user = await usersRepository.create(
+      syncedUser = await usersRepository.create(
         {
           id: userId,
           email: getPrimaryEmail(clerkUser),
@@ -60,7 +61,7 @@ export async function syncUser(userId: string): Promise<UserRecord> {
         },
         tx,
       );
-    } else if (clerkUser?.imageUrl && !user.imageUrl) {
+    } else if (clerkUser?.imageUrl && !syncedUser.imageUrl) {
       const updatedUser = await usersRepository.updateImageUrl(
         userId,
         clerkUser.imageUrl,
@@ -68,12 +69,16 @@ export async function syncUser(userId: string): Promise<UserRecord> {
       );
 
       if (updatedUser) {
-        user = updatedUser;
+        syncedUser = updatedUser;
       }
     }
 
-    await provisioningService.provisionPersonalWorkspace(user, tx);
+    await provisioningService.provisionPersonalWorkspace(syncedUser, tx);
 
-    return user;
+    return syncedUser;
   });
+
+  await invitationService.syncPendingInvitationsForUser(userId);
+
+  return user;
 }
