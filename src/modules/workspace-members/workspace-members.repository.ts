@@ -71,3 +71,23 @@ export async function findOwnerMembershipForUser(
 
   return mapWorkspaceMemberRowToRecord(row);
 }
+
+export async function softDeleteByWorkspaceId(
+  workspaceId: string,
+  executor: DbExecutor = db,
+): Promise<void> {
+  const now = new Date();
+
+  await executor
+    .update(workspaceMembersTable)
+    .set({
+      deleted_at: now,
+      updated_at: now,
+    })
+    .where(
+      and(
+        eq(workspaceMembersTable.workspaceId, workspaceId),
+        isNull(workspaceMembersTable.deleted_at),
+      ),
+    );
+}

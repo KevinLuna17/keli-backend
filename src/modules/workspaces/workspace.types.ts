@@ -25,3 +25,18 @@ export type CurrentWorkspaceResponse = {
   type: WorkspaceType;
   role: "owner" | "member";
 };
+
+export type WorkspaceResponse = {
+  id: string;
+  name: string;
+  type: WorkspaceType;
+  ownerId: string;
+  role: "owner" | "member";
+  createdAt: Date;
+  updatedAt: Date | null;
+};
+
+export type WorkspaceWithMembership = {
+  workspace: WorkspaceRecord;
+  role: "owner" | "member";
+};

@@ -154,6 +154,13 @@ async function ensurePersonalWorkspace(
   return workspace;
 }
 
+export async function seedDefaultCategoriesForWorkspace(
+  workspaceId: string,
+  tx: DbTransaction,
+): Promise<void> {
+  await ensureDefaultCategories(workspaceId, tx);
+}
+
 export async function provisionPersonalWorkspace(
   user: UserRecord,
   tx: DbTransaction,

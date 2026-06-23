@@ -1,6 +1,6 @@
 import { AppError } from "../../shared/errors/app-error";
+import * as workspaceService from "../workspaces/workspace.service";
 import * as categoriesRepository from "../categories/categories.repository";
-import * as workspacesRepository from "../workspaces/workspaces.repository";
 import * as transactionsRepository from "./transaction.repository";
 import {
   CreateTransactionDto,
@@ -11,25 +11,6 @@ import {
   ListTransactionsResult,
   TransactionRecord,
 } from "./transaction.types";
-
-async function assertWorkspaceAccess(
-  userId: string,
-  workspaceId: string,
-): Promise<void> {
-  const workspace = await workspacesRepository.findById(workspaceId);
-
-  if (!workspace) {
-    throw new AppError("Workspace not found", 404, "WORKSPACE_NOT_FOUND");
-  }
-
-  if (workspace.ownerId !== userId) {
-    throw new AppError(
-      "You do not have access to this workspace",
-      403,
-      "WORKSPACE_ACCESS_DENIED",
-    );
-  }
-}
 
 async function assertCategoryInWorkspace(
   categoryId: string,
@@ -61,7 +42,7 @@ async function getAccessibleTransaction(
     throw new AppError("Transaction not found", 404, "TRANSACTION_NOT_FOUND");
   }
 
-  await assertWorkspaceAccess(userId, transaction.workspaceId);
+  await workspaceService.assertWorkspaceAccess(userId, transaction.workspaceId);
 
   return transaction;
 }
@@ -71,7 +52,7 @@ export async function createTransaction(
   workspaceId: string,
   input: CreateTransactionDto,
 ): Promise<TransactionRecord> {
-  await assertWorkspaceAccess(userId, workspaceId);
+  await workspaceService.assertWorkspaceAccess(userId, workspaceId);
   await assertCategoryInWorkspace(input.categoryId, workspaceId);
 
   return transactionsRepository.createTransaction({
@@ -96,7 +77,7 @@ export async function listTransactions(
   userId: string,
   query: ListTransactionsQueryDto,
 ): Promise<ListTransactionsResult> {
-  await assertWorkspaceAccess(userId, query.workspaceId);
+  await workspaceService.assertWorkspaceAccess(userId, query.workspaceId);
 
   if (query.categoryId) {
     await assertCategoryInWorkspace(query.categoryId, query.workspaceId);
