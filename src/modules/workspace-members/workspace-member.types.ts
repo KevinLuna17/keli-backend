@@ -20,3 +20,18 @@ export type CreateWorkspaceMemberInput = {
   userId: string;
   role: WorkspaceMemberRole;
 };
+
+export type WorkspaceMemberWithUserRecord = WorkspaceMemberRecord & {
+  name: string | null;
+  email: string;
+  imageUrl: string | null;
+};
+
+export type WorkspaceMemberResponse = {
+  id: string;
+  userId: string;
+  name: string | null;
+  email: string;
+  imageUrl: string | null;
+  role: WorkspaceMemberRole;
+};
