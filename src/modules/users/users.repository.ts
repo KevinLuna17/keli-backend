@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, DbClient, DbTransaction } from "../../db";
 import { usersTable } from "../../db/schema/usersSchema";
 import { mapUserRowToRecord } from "./user.mapper";
-import { CreateUserInput, UserRecord } from "./user.types";
+import { CreateUserInput, UpdateProfileInput, UserRecord } from "./user.types";
 
 type DbExecutor = DbClient | DbTransaction;
 
@@ -49,6 +49,28 @@ export async function updateImageUrl(
     .update(usersTable)
     .set({
       image_url: imageUrl,
+      updated_at: new Date(),
+    })
+    .where(eq(usersTable.id, id))
+    .returning();
+
+  if (!row || row.deleted_at) {
+    return null;
+  }
+
+  return mapUserRowToRecord(row);
+}
+
+export async function updateProfile(
+  id: string,
+  input: UpdateProfileInput,
+  executor: DbExecutor = db,
+): Promise<UserRecord | null> {
+  const [row] = await executor
+    .update(usersTable)
+    .set({
+      name: input.name,
+      ...(input.imageUrl !== undefined ? { image_url: input.imageUrl } : {}),
       updated_at: new Date(),
     })
     .where(eq(usersTable.id, id))
