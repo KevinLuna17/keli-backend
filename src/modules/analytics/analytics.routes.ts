@@ -6,24 +6,10 @@ const router = Router();
 
 router.use(authMiddleware);
 
-/**
- * Analytics API
- *
- * Base path: /api/analytics
- * All routes require authentication (Clerk).
- *
- * GET /dashboard
- *   Workspace dashboard summary for the home screen.
- *   Query: workspaceId (UUID, required)
- *   Response: 200 {
- *     data: {
- *       balanceInCents,
- *       totalIncomeInCents,
- *       totalExpensesInCents,
- *       recentTransactions: TransactionRecord[]
- *     }
- *   }
- */
 router.get("/dashboard", analyticsController.getDashboard);
+router.get("/summary", analyticsController.getSummary);
+router.get("/monthly", analyticsController.getMonthly);
+router.get("/expenses-by-category", analyticsController.getExpensesByCategory);
+router.get("/income-by-category", analyticsController.getIncomeByCategory);
 
 export default router;
