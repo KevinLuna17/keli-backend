@@ -36,6 +36,13 @@
       "when": 1782250972149,
       "tag": "0004_solid_rockslide",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1782836620585,
+      "tag": "0005_spicy_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@ import authRouter from "./auth/index";
 import { getHealth } from "./health/health.controller";
 import analyticsRouter from "../modules/analytics/analytics.routes";
 import categoriesRouter from "../modules/categories/category.routes";
+import preferencesRouter from "../modules/preferences/preferences.routes";
 import profileRouter from "../modules/profile/profile.routes";
 import transactionsRouter from "../modules/transactions/transaction.routes";
 import invitationsRouter from "../modules/workspace-invitations/invitation.routes";
@@ -12,6 +13,7 @@ const router = Router();
 
 router.get("/health", getHealth);
 router.use("/auth", authRouter);
+router.use("/preferences", preferencesRouter);
 router.use("/profile", profileRouter);
 router.use("/workspaces", workspacesRouter);
 router.use("/invitations", invitationsRouter);

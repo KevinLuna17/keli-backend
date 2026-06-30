@@ -4,5 +4,6 @@ export * from "./workspaces-schema";
 export * from "./workspace-members-schema";
 export * from "./workspace-invitations-schema";
 export * from "./categories-schema";
+export * from "./user-preferences-schema";
 export * from "./relations";
 export * from "../../modules/transactions/transaction.table";
