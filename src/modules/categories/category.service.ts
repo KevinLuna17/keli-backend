@@ -4,6 +4,12 @@ import * as categoriesRepository from "./categories.repository";
 import { CategoryRecord } from "./category.types";
 import { ListCategoriesQueryDto } from "./category.schema";
 
+export async function findById(
+  categoryId: string,
+): Promise<CategoryRecord | null> {
+  return categoriesRepository.findById(categoryId);
+}
+
 export async function listWorkspaceCategories(
   userId: string,
   query: ListCategoriesQueryDto,

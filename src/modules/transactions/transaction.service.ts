@@ -1,6 +1,6 @@
 import { AppError } from "../../shared/errors/app-error";
+import * as categoryService from "../categories/category.service";
 import * as workspaceService from "../workspaces/workspace.service";
-import * as categoriesRepository from "../categories/categories.repository";
 import * as transactionsRepository from "./transaction.repository";
 import {
   CreateTransactionDto,
@@ -10,13 +10,15 @@ import {
 import {
   ListTransactionsResult,
   TransactionRecord,
+  TransactionType,
 } from "./transaction.types";
 
 async function assertCategoryInWorkspace(
   categoryId: string,
   workspaceId: string,
+  expectedType?: TransactionType,
 ): Promise<void> {
-  const category = await categoriesRepository.findById(categoryId);
+  const category = await categoryService.findById(categoryId);
 
   if (!category) {
     throw new AppError("Category not found", 404, "CATEGORY_NOT_FOUND");
@@ -27,6 +29,14 @@ async function assertCategoryInWorkspace(
       "Category does not belong to this workspace",
       400,
       "CATEGORY_WORKSPACE_MISMATCH",
+    );
+  }
+
+  if (expectedType !== undefined && category.type !== expectedType) {
+    throw new AppError(
+      "Category type does not match transaction type",
+      400,
+      "CATEGORY_TYPE_MISMATCH",
     );
   }
 }
@@ -53,7 +63,7 @@ export async function createTransaction(
   input: CreateTransactionDto,
 ): Promise<TransactionRecord> {
   await workspaceService.assertWorkspaceAccess(userId, workspaceId);
-  await assertCategoryInWorkspace(input.categoryId, workspaceId);
+  await assertCategoryInWorkspace(input.categoryId, workspaceId, input.type);
 
   return transactionsRepository.createTransaction({
     workspaceId,
@@ -101,8 +111,10 @@ export async function updateTransaction(
 ): Promise<TransactionRecord> {
   const transaction = await getAccessibleTransaction(userId, transactionId);
 
-  if (input.categoryId) {
-    await assertCategoryInWorkspace(input.categoryId, transaction.workspaceId);
+  if (input.categoryId !== undefined || input.type !== undefined) {
+    const effectiveCategoryId = input.categoryId ?? transaction.categoryId;
+    const effectiveType = input.type ?? transaction.type;
+    await assertCategoryInWorkspace(effectiveCategoryId, transaction.workspaceId, effectiveType);
   }
 
   const updatedTransaction = await transactionsRepository.updateTransaction(
