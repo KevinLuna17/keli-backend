@@ -3,6 +3,14 @@ import * as preferencesRepository from "./preferences.repository";
 import { PatchPreferencesBodyDto } from "./preferences.schema";
 import { PreferencesResponse } from "./preferences.types";
 
+export async function initializePreferences(
+  userId: string,
+  language: string,
+  timezone: string,
+): Promise<void> {
+  await preferencesRepository.initializePreferences(userId, language, timezone);
+}
+
 const DEFAULT_PREFERENCES: PreferencesResponse = {
   language: "en",
   timezone: "UTC",

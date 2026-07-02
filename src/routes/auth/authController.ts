@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { AppError } from "../../shared/errors/app-error";
+import { parseSchema } from "../../shared/validators/parse-schema";
 import * as authService from "../../modules/auth/auth.service";
+import { ApiSuccessResponse } from "../../shared/types/api-response";
+import { UserRecord } from "../../modules/users/user.types";
 
 const SyncUserBodySchema = z.object({
   language: z.string().trim().max(10).optional(),
@@ -19,14 +22,11 @@ export async function syncUser(
       throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
     }
 
-    const body = SyncUserBodySchema.safeParse(req.body);
-    const language = body.success ? body.data.language : undefined;
-    const region = body.success ? body.data.region : undefined;
-    const timezone = body.success ? body.data.timezone : undefined;
-
+    const { language, region, timezone } = parseSchema(SyncUserBodySchema, req.body);
     const user = await authService.syncUser(req.user.id, region, timezone, language);
 
-    res.status(200).json({ data: user });
+    const response: ApiSuccessResponse<UserRecord> = { data: user };
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }

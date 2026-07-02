@@ -2,7 +2,7 @@ import { clerkClient } from "@clerk/express";
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
 import * as invitationService from "../workspace-invitations/invitation.service";
-import * as preferencesRepository from "../preferences/preferences.repository";
+import * as preferencesService from "../preferences/preferences.service";
 import * as provisioningService from "../provisioning/provisioning.service";
 import * as usersRepository from "../users/users.repository";
 import { UserRecord } from "../users/user.types";
@@ -86,7 +86,7 @@ export async function syncUser(
 
   await invitationService.syncPendingInvitationsForUser(userId);
 
-  await preferencesRepository.initializePreferences(
+  await preferencesService.initializePreferences(
     userId,
     language ?? "en",
     timezone ?? "UTC",
