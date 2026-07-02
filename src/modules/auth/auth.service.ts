@@ -1,7 +1,10 @@
 import { clerkClient } from "@clerk/express";
+import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
+import * as invitationService from "../workspace-invitations/invitation.service";
+import * as preferencesRepository from "../preferences/preferences.repository";
+import * as provisioningService from "../provisioning/provisioning.service";
 import * as usersRepository from "../users/users.repository";
-import * as usersService from "../users/users.service";
 import { UserRecord } from "../users/user.types";
 
 function getPrimaryEmail(
@@ -33,36 +36,61 @@ function getDisplayName(
   return fullName || null;
 }
 
-export async function syncUser(userId: string): Promise<UserRecord> {
+export async function syncUser(
+  userId: string,
+  region?: string,
+  timezone?: string,
+  language?: string,
+): Promise<UserRecord> {
   const existingUser = await usersRepository.findById(userId);
+  const shouldFetchClerk =
+    !existingUser || !existingUser.imageUrl || !existingUser.name;
 
-  if (existingUser) {
-    if (existingUser.imageUrl) {
-      return existingUser;
-    }
+  const clerkUser = shouldFetchClerk
+    ? await clerkClient.users.getUser(userId)
+    : null;
 
-    const clerkUser = await clerkClient.users.getUser(userId);
+  const user = await db.transaction(async (tx) => {
+    let syncedUser = await usersRepository.findById(userId, tx);
 
-    if (clerkUser.imageUrl) {
+    if (!syncedUser) {
+      if (!clerkUser) {
+        throw new AppError("Authenticated user not found", 404, "USER_NOT_FOUND");
+      }
+
+      syncedUser = await usersRepository.create(
+        {
+          id: userId,
+          email: getPrimaryEmail(clerkUser),
+          name: getDisplayName(clerkUser),
+          imageUrl: clerkUser.imageUrl,
+        },
+        tx,
+      );
+    } else if (clerkUser?.imageUrl && !syncedUser.imageUrl) {
       const updatedUser = await usersRepository.updateImageUrl(
         userId,
         clerkUser.imageUrl,
+        tx,
       );
 
       if (updatedUser) {
-        return updatedUser;
+        syncedUser = updatedUser;
       }
     }
 
-    return existingUser;
-  }
+    await provisioningService.provisionPersonalWorkspace(syncedUser, region, tx);
 
-  const clerkUser = await clerkClient.users.getUser(userId);
-
-  return usersService.ensureUserExists({
-    id: userId,
-    email: getPrimaryEmail(clerkUser),
-    name: getDisplayName(clerkUser),
-    imageUrl: clerkUser.imageUrl,
+    return syncedUser;
   });
+
+  await invitationService.syncPendingInvitationsForUser(userId);
+
+  await preferencesRepository.initializePreferences(
+    userId,
+    language ?? "en",
+    timezone ?? "UTC",
+  );
+
+  return user;
 }
