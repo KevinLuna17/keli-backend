@@ -1,8 +1,8 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { db, DbClient, DbTransaction } from "../../db";
 import { categoriesTable } from "../../db/schema/categories-schema";
+import { DEFAULT_CATEGORY_ICON_KEY } from "../../shared/constants/category-icon-keys";
 import { isUniqueViolation } from "../../shared/utils/is-unique-violation";
-import { resolveIconKeyForCategory } from "./category-icon.utils";
 import { mapCategoryRowToRecord } from "./category.mapper";
 import { CategoryRecord, CreateCategoryInput, CategoryType } from "./category.types";
 
@@ -49,19 +49,13 @@ export async function create(
   input: CreateCategoryInput,
   executor: DbExecutor = db,
 ): Promise<CategoryRecord> {
-  const iconKey = resolveIconKeyForCategory({
-    name: input.name,
-    type: input.type,
-    iconKey: input.iconKey,
-  });
-
   const [row] = await executor
     .insert(categoriesTable)
     .values({
       workspaceId: input.workspaceId,
       name: input.name,
       type: input.type,
-      iconKey,
+      iconKey: input.iconKey ?? DEFAULT_CATEGORY_ICON_KEY,
     })
     .returning();
 

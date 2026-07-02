@@ -3,9 +3,11 @@ import { CATEGORY_ICON_KEYS } from "../../shared/constants/category-icon-keys";
 
 export const CategoryIconKeySchema = z.enum(CATEGORY_ICON_KEYS);
 
-export const ListCategoriesQuerySchema = z.object({
-  workspaceId: z.uuid(),
-});
+export const ListCategoriesQuerySchema = z
+  .object({
+    workspaceId: z.uuid("workspaceId must be a valid UUID"),
+  })
+  .strict();
 
 export type ListCategoriesQueryDto = z.infer<typeof ListCategoriesQuerySchema>;
 
