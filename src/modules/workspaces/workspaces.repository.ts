@@ -62,6 +62,7 @@ export async function create(
     .values({
       name: input.name,
       type: input.type,
+      currency: input.currency,
       ownerId: input.ownerId,
     })
     .returning();

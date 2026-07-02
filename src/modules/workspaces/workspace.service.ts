@@ -101,6 +101,7 @@ export async function createSharedWorkspace(
       {
         name: input.name,
         type: "shared",
+        currency: input.currency,
         ownerId: userId,
       },
       tx,
@@ -192,6 +193,7 @@ export async function getCurrentWorkspace(
     id: personalWorkspace.id,
     name: personalWorkspace.name,
     type: personalWorkspace.type,
+    currency: personalWorkspace.currency,
     role: membership?.role ?? "owner",
   };
 }

@@ -10,6 +10,7 @@ export const workspacesTable = pgTable(
     id: uuid().primaryKey().defaultRandom(),
     name: text().notNull(),
     type: workspaceTypeEnum().notNull().default("personal"),
+    currency: text().notNull().default("USD"),
     ownerId: text()
       .notNull()
       .references(() => usersTable.id),

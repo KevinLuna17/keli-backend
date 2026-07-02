@@ -1,8 +1,9 @@
 import { clerkClient } from "@clerk/express";
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
-import * as provisioningService from "../provisioning/provisioning.service";
 import * as invitationService from "../workspace-invitations/invitation.service";
+import * as preferencesRepository from "../preferences/preferences.repository";
+import * as provisioningService from "../provisioning/provisioning.service";
 import * as usersRepository from "../users/users.repository";
 import { UserRecord } from "../users/user.types";
 
@@ -35,7 +36,11 @@ function getDisplayName(
   return fullName || null;
 }
 
-export async function syncUser(userId: string): Promise<UserRecord> {
+export async function syncUser(
+  userId: string,
+  region?: string,
+  timezone?: string,
+): Promise<UserRecord> {
   const existingUser = await usersRepository.findById(userId);
   const shouldFetchClerk =
     !existingUser || !existingUser.imageUrl || !existingUser.name;
@@ -73,12 +78,16 @@ export async function syncUser(userId: string): Promise<UserRecord> {
       }
     }
 
-    await provisioningService.provisionPersonalWorkspace(syncedUser, tx);
+    await provisioningService.provisionPersonalWorkspace(syncedUser, region, tx);
 
     return syncedUser;
   });
 
   await invitationService.syncPendingInvitationsForUser(userId);
+
+  if (timezone) {
+    await preferencesRepository.upsert(userId, { timezone });
+  }
 
   return user;
 }

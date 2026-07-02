@@ -1,4 +1,5 @@
 import { DEFAULT_CATEGORIES } from "../../shared/constants/default-categories";
+import { getCurrencyForRegion } from "../../shared/constants/supported-currencies";
 import { isUniqueViolation } from "../../shared/utils/is-unique-violation";
 import { DbTransaction } from "../../db";
 import * as categoriesRepository from "../categories/categories.repository";
@@ -99,16 +100,20 @@ async function ensureDefaultCategories(
 
 async function ensurePersonalWorkspace(
   user: UserRecord,
+  region: string | undefined,
   tx: DbTransaction,
 ): Promise<WorkspaceRecord> {
   let workspace = await workspacesRepository.findPersonalByOwnerId(user.id, tx);
 
   if (!workspace) {
+    const currency = getCurrencyForRegion(region);
+
     try {
       workspace = await workspacesRepository.create(
         {
           name: buildPersonalWorkspaceName(user.name),
           type: "personal",
+          currency,
           ownerId: user.id,
         },
         tx,
@@ -163,7 +168,8 @@ export async function seedDefaultCategoriesForWorkspace(
 
 export async function provisionPersonalWorkspace(
   user: UserRecord,
+  region: string | undefined,
   tx: DbTransaction,
 ): Promise<WorkspaceRecord> {
-  return ensurePersonalWorkspace(user, tx);
+  return ensurePersonalWorkspace(user, region, tx);
 }
