@@ -1,6 +1,7 @@
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
 import * as provisioningService from "../provisioning/provisioning.service";
+import * as transactionRepository from "../transactions/transaction.repository";
 import * as workspaceMembersRepository from "../workspace-members/workspace-members.repository";
 import { WorkspaceMemberRecord } from "../workspace-members/workspace-member.types";
 import { mapWorkspaceToResponse } from "./workspace.mapper";
@@ -8,6 +9,7 @@ import * as workspacesRepository from "./workspaces.repository";
 import {
   CreateWorkspaceBodyDto,
   UpdateWorkspaceBodyDto,
+  UpdateWorkspaceCurrencyBodyDto,
 } from "./workspace.schema";
 import {
   CurrentWorkspaceResponse,
@@ -132,6 +134,37 @@ export async function updateWorkspace(
   const updatedWorkspace = await workspacesRepository.updateName(
     workspace.id,
     input.name,
+  );
+
+  if (!updatedWorkspace) {
+    throw new AppError("Workspace not found", 404, "WORKSPACE_NOT_FOUND");
+  }
+
+  return mapWorkspaceToResponse(updatedWorkspace, "owner");
+}
+
+export async function updateWorkspaceCurrency(
+  userId: string,
+  workspaceId: string,
+  input: UpdateWorkspaceCurrencyBodyDto,
+): Promise<WorkspaceResponse> {
+  const workspace = await assertWorkspaceOwner(userId, workspaceId);
+
+  const hasTransactions = await transactionRepository.existsByWorkspaceId(
+    workspace.id,
+  );
+
+  if (hasTransactions) {
+    throw new AppError(
+      "Workspace currency cannot be changed because transactions already exist",
+      409,
+      "WORKSPACE_CURRENCY_LOCKED",
+    );
+  }
+
+  const updatedWorkspace = await workspacesRepository.updateCurrency(
+    workspace.id,
+    input.currency,
   );
 
   if (!updatedWorkspace) {

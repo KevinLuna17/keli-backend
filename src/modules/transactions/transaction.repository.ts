@@ -7,6 +7,7 @@ import {
   isNull,
   lte,
   SQL,
+  sql,
 } from "drizzle-orm";
 import { db } from "../../db";
 import { transactionsTable } from "./transaction.table";
@@ -47,6 +48,28 @@ function buildListConditions(
   }
 
   return and(...conditions);
+}
+
+/**
+ * Returns true if at least one non-deleted transaction exists for the workspace.
+ * Uses LIMIT 1 to avoid a full table scan — the answer is known as soon as one
+ * row is found.
+ */
+export async function existsByWorkspaceId(
+  workspaceId: string,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ exists: sql<number>`1` })
+    .from(transactionsTable)
+    .where(
+      and(
+        eq(transactionsTable.workspaceId, workspaceId),
+        isNull(transactionsTable.deleted_at),
+      ),
+    )
+    .limit(1);
+
+  return row !== undefined;
 }
 
 export async function createTransaction(

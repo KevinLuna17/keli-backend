@@ -27,3 +27,11 @@ export const UpdateWorkspaceBodySchema = z.object({
 });
 
 export type UpdateWorkspaceBodyDto = z.infer<typeof UpdateWorkspaceBodySchema>;
+
+export const UpdateWorkspaceCurrencyBodySchema = z.object({
+  currency: z.enum(SUPPORTED_CURRENCIES),
+});
+
+export type UpdateWorkspaceCurrencyBodyDto = z.infer<
+  typeof UpdateWorkspaceCurrencyBodySchema
+>;

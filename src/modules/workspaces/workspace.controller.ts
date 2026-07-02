@@ -6,6 +6,7 @@ import * as workspaceService from "./workspace.service";
 import {
   CreateWorkspaceBodySchema,
   UpdateWorkspaceBodySchema,
+  UpdateWorkspaceCurrencyBodySchema,
   WorkspaceIdParamsSchema,
 } from "./workspace.schema";
 import {
@@ -89,6 +90,31 @@ export async function updateWorkspace(
     const params = parseSchema(WorkspaceIdParamsSchema, req.params);
     const body = parseSchema(UpdateWorkspaceBodySchema, req.body);
     const workspace = await workspaceService.updateWorkspace(
+      userId,
+      params.id,
+      body,
+    );
+
+    const response: ApiSuccessResponse<WorkspaceResponse> = {
+      data: workspace,
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateWorkspaceCurrency(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = getAuthenticatedUserId(req);
+    const params = parseSchema(WorkspaceIdParamsSchema, req.params);
+    const body = parseSchema(UpdateWorkspaceCurrencyBodySchema, req.body);
+    const workspace = await workspaceService.updateWorkspaceCurrency(
       userId,
       params.id,
       body,

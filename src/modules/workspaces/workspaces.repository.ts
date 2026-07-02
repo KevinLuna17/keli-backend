@@ -99,6 +99,27 @@ export async function listByUserId(
   }));
 }
 
+export async function updateCurrency(
+  id: string,
+  currency: string,
+  executor: DbExecutor = db,
+): Promise<WorkspaceRecord | null> {
+  const [row] = await executor
+    .update(workspacesTable)
+    .set({
+      currency,
+      updated_at: new Date(),
+    })
+    .where(and(eq(workspacesTable.id, id), isNull(workspacesTable.deleted_at)))
+    .returning();
+
+  if (!row) {
+    return null;
+  }
+
+  return mapWorkspaceRowToRecord(row);
+}
+
 export async function updateName(
   id: string,
   name: string,

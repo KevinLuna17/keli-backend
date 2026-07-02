@@ -25,6 +25,11 @@ router.delete(
   workspaceMemberController.removeWorkspaceMember,
 );
 router.patch("/:id", authMiddleware, workspaceController.updateWorkspace);
+router.patch(
+  "/:id/currency",
+  authMiddleware,
+  workspaceController.updateWorkspaceCurrency,
+);
 router.delete("/:id", authMiddleware, workspaceController.deleteWorkspace);
 
 export default router;
