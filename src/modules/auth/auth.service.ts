@@ -40,6 +40,7 @@ export async function syncUser(
   userId: string,
   region?: string,
   timezone?: string,
+  language?: string,
 ): Promise<UserRecord> {
   const existingUser = await usersRepository.findById(userId);
   const shouldFetchClerk =
@@ -85,9 +86,11 @@ export async function syncUser(
 
   await invitationService.syncPendingInvitationsForUser(userId);
 
-  if (timezone) {
-    await preferencesRepository.upsert(userId, { timezone });
-  }
+  await preferencesRepository.initializePreferences(
+    userId,
+    language ?? "en",
+    timezone ?? "UTC",
+  );
 
   return user;
 }

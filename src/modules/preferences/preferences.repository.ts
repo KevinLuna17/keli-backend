@@ -4,6 +4,32 @@ import { userPreferencesTable } from "../../db/schema/user-preferences-schema";
 import { mapPreferencesRowToRecord } from "./preferences.mapper";
 import { PreferencesRecord, UpsertPreferencesInput } from "./preferences.types";
 
+/**
+ * Inserts user preferences for the first time, or updates only the timezone
+ * on subsequent calls. Language is intentionally excluded from the ON CONFLICT
+ * update clause — once set it must only change through the user-facing
+ * PATCH /preferences endpoint, never via the sync provisioning flow.
+ */
+export async function initializePreferences(
+  userId: string,
+  language: string,
+  timezone: string,
+): Promise<PreferencesRecord> {
+  const [row] = await db
+    .insert(userPreferencesTable)
+    .values({ userId, language, timezone })
+    .onConflictDoUpdate({
+      target: userPreferencesTable.userId,
+      set: {
+        timezone,
+        updated_at: new Date(),
+      },
+    })
+    .returning();
+
+  return mapPreferencesRowToRecord(row!);
+}
+
 export async function findByUserId(
   userId: string,
 ): Promise<PreferencesRecord | null> {
