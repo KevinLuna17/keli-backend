@@ -30,21 +30,21 @@ function toAmount(value: string | number | null | undefined): number {
 export async function getWorkspaceTotals(
   workspaceId: string,
 ): Promise<WorkspaceTotals> {
-  const baseCondition = workspaceConditions(workspaceId);
-
-  const [incomeResult] = await db
-    .select({ total: sum(transactionsTable.amountInCents) })
+  const [result] = await db
+    .select({
+      totalIncomeInCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactionsTable.type} = 'income' THEN ${transactionsTable.amountInCents} ELSE 0 END), 0)`.mapWith(
+        Number,
+      ),
+      totalExpensesInCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactionsTable.type} = 'expense' THEN ${transactionsTable.amountInCents} ELSE 0 END), 0)`.mapWith(
+        Number,
+      ),
+    })
     .from(transactionsTable)
-    .where(and(baseCondition, eq(transactionsTable.type, "income")));
-
-  const [expenseResult] = await db
-    .select({ total: sum(transactionsTable.amountInCents) })
-    .from(transactionsTable)
-    .where(and(baseCondition, eq(transactionsTable.type, "expense")));
+    .where(workspaceConditions(workspaceId));
 
   return {
-    totalIncomeInCents: toAmount(incomeResult?.total),
-    totalExpensesInCents: toAmount(expenseResult?.total),
+    totalIncomeInCents: result?.totalIncomeInCents ?? 0,
+    totalExpensesInCents: result?.totalExpensesInCents ?? 0,
   };
 }
 
