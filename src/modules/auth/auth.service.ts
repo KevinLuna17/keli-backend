@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/express";
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
+import { isUniqueViolation } from "../../shared/utils/is-unique-violation";
 import * as invitationService from "../workspace-invitations/invitation.service";
 import * as preferencesService from "../preferences/preferences.service";
 import * as provisioningService from "../provisioning/provisioning.service";
@@ -58,15 +59,27 @@ export async function syncUser(
         throw new AppError("Authenticated user not found", 404, "USER_NOT_FOUND");
       }
 
-      syncedUser = await usersRepository.create(
-        {
-          id: userId,
-          email: getPrimaryEmail(clerkUser),
-          name: getDisplayName(clerkUser),
-          imageUrl: clerkUser.imageUrl,
-        },
-        tx,
-      );
+      try {
+        syncedUser = await usersRepository.create(
+          {
+            id: userId,
+            email: getPrimaryEmail(clerkUser),
+            name: getDisplayName(clerkUser),
+            imageUrl: clerkUser.imageUrl,
+          },
+          tx,
+        );
+      } catch (error) {
+        if (!isUniqueViolation(error)) {
+          throw error;
+        }
+
+        syncedUser = await usersRepository.findById(userId, tx);
+
+        if (!syncedUser) {
+          throw new AppError("Authenticated user not found", 404, "USER_NOT_FOUND");
+        }
+      }
     } else if (clerkUser?.imageUrl && !syncedUser.imageUrl) {
       const updatedUser = await usersRepository.updateImageUrl(
         userId,
