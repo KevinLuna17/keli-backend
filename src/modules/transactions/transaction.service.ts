@@ -129,6 +129,12 @@ export async function updateTransaction(
   return updatedTransaction;
 }
 
+export async function existsByWorkspaceId(
+  workspaceId: string,
+): Promise<boolean> {
+  return transactionsRepository.existsByWorkspaceId(workspaceId);
+}
+
 export async function deleteTransaction(
   userId: string,
   transactionId: string,

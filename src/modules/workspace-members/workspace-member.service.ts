@@ -1,6 +1,5 @@
 import { AppError } from "../../shared/errors/app-error";
 import * as workspaceService from "../workspaces/workspace.service";
-import * as workspacesRepository from "../workspaces/workspaces.repository";
 import { mapWorkspaceMemberToResponse } from "./workspace-member.mapper";
 import * as workspaceMembersRepository from "./workspace-members.repository";
 import { WorkspaceMemberResponse } from "./workspace-member.types";
@@ -10,12 +9,6 @@ export async function listWorkspaceMembers(
   workspaceId: string,
 ): Promise<WorkspaceMemberResponse[]> {
   await workspaceService.assertWorkspaceAccess(userId, workspaceId);
-
-  const workspace = await workspacesRepository.findById(workspaceId);
-
-  if (!workspace) {
-    throw new AppError("Workspace not found", 404, "WORKSPACE_NOT_FOUND");
-  }
 
   const members = await workspaceMembersRepository.listByWorkspaceId(workspaceId);
 
@@ -37,7 +30,7 @@ export async function removeWorkspaceMember(
   workspaceId: string,
   memberId: string,
 ): Promise<void> {
-  const workspace = await workspacesRepository.findById(workspaceId);
+  const workspace = await workspaceService.findById(workspaceId);
 
   if (!workspace) {
     throw new AppError("Workspace not found", 404, "WORKSPACE_NOT_FOUND");

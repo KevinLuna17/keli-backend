@@ -1,7 +1,7 @@
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
 import { isUniqueViolation } from "../../shared/utils/is-unique-violation";
-import * as usersRepository from "../users/users.repository";
+import * as usersService from "../users/users.service";
 import * as workspaceMembersRepository from "../workspace-members/workspace-members.repository";
 import * as workspacesRepository from "../workspaces/workspaces.repository";
 import {
@@ -35,12 +35,12 @@ function mapToResponse(
 }
 
 async function getInviterName(userId: string): Promise<string | null> {
-  const user = await usersRepository.findById(userId);
+  const user = await usersService.findById(userId);
   return user?.name?.trim() || null;
 }
 
 async function getUserEmailOrThrow(userId: string): Promise<string> {
-  const user = await usersRepository.findById(userId);
+  const user = await usersService.findById(userId);
 
   if (!user) {
     throw new AppError("User not found", 404, "USER_NOT_FOUND");

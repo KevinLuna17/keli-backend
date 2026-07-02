@@ -1,7 +1,7 @@
 import { db } from "../../db";
 import { AppError } from "../../shared/errors/app-error";
 import * as provisioningService from "../provisioning/provisioning.service";
-import * as transactionRepository from "../transactions/transaction.repository";
+import * as transactionService from "../transactions/transaction.service";
 import * as workspaceMembersRepository from "../workspace-members/workspace-members.repository";
 import { WorkspaceMemberRecord } from "../workspace-members/workspace-member.types";
 import { mapWorkspaceToResponse } from "./workspace.mapper";
@@ -77,6 +77,12 @@ async function assertWorkspaceOwner(
   return workspace;
 }
 
+export async function findById(
+  workspaceId: string,
+): Promise<WorkspaceRecord | null> {
+  return workspacesRepository.findById(workspaceId);
+}
+
 export async function assertWorkspaceAccess(
   userId: string,
   workspaceId: string,
@@ -150,7 +156,7 @@ export async function updateWorkspaceCurrency(
 ): Promise<WorkspaceResponse> {
   const workspace = await assertWorkspaceOwner(userId, workspaceId);
 
-  const hasTransactions = await transactionRepository.existsByWorkspaceId(
+  const hasTransactions = await transactionService.existsByWorkspaceId(
     workspace.id,
   );
 
