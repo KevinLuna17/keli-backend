@@ -46,8 +46,9 @@ export async function getAnalyticsSummary(
   await assertAnalyticsWorkspaceAccess(userId, query.workspaceId);
 
   const totals = await analyticsRepository.getWorkspaceTotals(query.workspaceId);
+  const balanceInCents = totals.totalIncomeInCents - totals.totalExpensesInCents;
 
-  return mapWorkspaceTotalsToSummary(totals);
+  return mapWorkspaceTotalsToSummary(totals, balanceInCents);
 }
 
 export async function getMonthlyAnalytics(

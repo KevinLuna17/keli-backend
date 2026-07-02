@@ -24,14 +24,13 @@ const MONTH_LABELS = [
 
 export function mapWorkspaceTotalsToSummary(
   totals: WorkspaceTotals,
+  balanceInCents: number,
 ): AnalyticsSummary {
-  const balance = totals.totalIncomeInCents - totals.totalExpensesInCents;
-
   return {
-    balance,
+    balance: balanceInCents,
     totalIncome: totals.totalIncomeInCents,
     totalExpenses: totals.totalExpensesInCents,
-    savings: balance,
+    savings: balanceInCents,
   };
 }
 
